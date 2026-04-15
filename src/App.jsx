@@ -754,7 +754,7 @@ const DiagramScribe = ({ dark }) => (
     <ScribeEdgeLbl x={252} y={82}>① TUS upload</ScribeEdgeLbl>
 
     {/* FU → Postgres pending (2) */}
-    <ArchSegment x1={198} y1={100} x2={316} y2={168} delay={0.03} markerId="archArrowEndScribe" />
+    <ArchSegment x1={198} y1={100} x2={346} y2={178} delay={0.03} markerId="archArrowEndScribe" />
     <ScribeEdgeLbl x={228} y={128}>② insert pending</ScribeEdgeLbl>
 
     {/* FU → POST /transcribe (3) — exits FileUpload right-center, elbows above Storage row */}
@@ -769,7 +769,7 @@ const DiagramScribe = ({ dark }) => (
       strokeLinecap="round"
       markerEnd="url(#archArrowEndScribe)"
     />
-    <ScribeEdgeLbl x={368} y={54}>③ POST /transcribe</ScribeEdgeLbl>
+    <ScribeEdgeLbl x={470} y={58}>③ POST /transcribe</ScribeEdgeLbl>
 
     {/* Storage → API download (4) — audio flows from Storage to API */}
     <ArchSegment x1={474} y1={92} x2={604} y2={92} delay={0.16} markerId="archArrowEndScribe" />
@@ -782,17 +782,17 @@ const DiagramScribe = ({ dark }) => (
     <ArchArrow x1={670} y1={290} x2={670} y2={308} delay={0.19} />
 
     {/* Transcriber → Postgres (5) chunk progress — branch */}
-    <ArchSegment x1={604} y1={270} x2={504} y2={188} delay={0.2} markerId="archArrowEndScribe" />
+    <ArchSegment x1={604} y1={270} x2={474} y2={195} delay={0.2} markerId="archArrowEndScribe" />
     <ScribeEdgeLbl x={530} y={188}>⑤ chunk progress</ScribeEdgeLbl>
 
     {/* Reconciler → Postgres (6) final */}
-    <ArchSegment x1={604} y1={328} x2={504} y2={200} delay={0.21} markerId="archArrowEndScribe" />
-    <ScribeEdgeLbl x={538} y={232}>⑥ completed</ScribeEdgeLbl>
+    <ArchSegment x1={604} y1={328} x2={474} y2={205} delay={0.21} markerId="archArrowEndScribe" />
+    <ScribeEdgeLbl x={538} y={242}>⑥ completed</ScribeEdgeLbl>
 
     {/* Postgres → PG Realtime (DB feeds realtime) — single downward arrow */}
     <line
       x1={410}
-      y1={212}
+      y1={210}
       x2={410}
       y2={278}
       stroke="#D28D77"
@@ -819,7 +819,7 @@ const DiagramScribe = ({ dark }) => (
 
     {/* TranscriptViewer → Postgres — wide route, label offset */}
     <path
-      d="M 198 400 L 540 400 L 540 188 L 504 188"
+      d="M 198 400 L 540 400 L 540 188 L 474 188"
       fill="none"
       stroke="#D28D77"
       strokeWidth="1.5"

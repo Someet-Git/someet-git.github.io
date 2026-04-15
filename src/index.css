@@ -1,0 +1,174 @@
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,300;1,6..72,400;1,6..72,600&family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+/* ─── Design Tokens ─── */
+:root {
+  --primary: #D28D77;
+  --primary-light: #E8B09A;
+  --primary-dark: #B86E56;
+  --secondary: #3D4A3E;
+  --tertiary: #6A7A6B;
+
+  --surface: #F2F0E9;
+  --surface-container: #E8E5DB;
+  --surface-container-low: #EDEAE2;
+  --surface-container-lowest: #FFFFFF;
+
+  --on-surface: #2C3A2D;
+  --on-surface-variant: #6A7A6B;
+  --on-surface-muted: #9AA89B;
+
+  --border: rgba(61, 74, 62, 0.12);
+  --glass: rgba(255, 255, 255, 0.55);
+  --glass-blur: blur(20px);
+
+  --font-display: 'Newsreader', Georgia, serif;
+  --font-body: 'Manrope', system-ui, sans-serif;
+
+  --radius-pill: 9999px;
+  --radius-card: 2.5rem;
+  --radius-sm: 1rem;
+
+  --shadow-sm: 0 1px 3px rgba(61, 74, 62, 0.06), 0 1px 2px rgba(61,74,62,0.04);
+  --shadow-md: 0 4px 16px rgba(61, 74, 62, 0.08), 0 2px 8px rgba(61,74,62,0.06);
+  --shadow-lg: 0 12px 40px rgba(210, 141, 119, 0.15), 0 4px 16px rgba(61,74,62,0.08);
+  --shadow-primary: 0 8px 32px rgba(210, 141, 119, 0.25);
+
+  --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+  --surface: #1A1F1B;
+  --surface-container: #222A24;
+  --surface-container-low: #1D2320;
+  --surface-container-lowest: #283029;
+
+  --on-surface: #DDD8CD;
+  --on-surface-variant: #9AAA9B;
+  --on-surface-muted: #6A7A6B;
+
+  --border: rgba(200, 220, 200, 0.1);
+  --glass: rgba(26, 31, 27, 0.75);
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
+  --shadow-lg: 0 12px 40px rgba(210, 141, 119, 0.12), 0 4px 16px rgba(0,0,0,0.25);
+}
+
+/* ─── Reset ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--surface);
+  color: var(--on-surface);
+  line-height: 1.65;
+  font-size: 1rem;
+  transition: background var(--transition), color var(--transition);
+  overflow-x: hidden;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--surface-container-low); }
+::-webkit-scrollbar-thumb { background: var(--tertiary); border-radius: var(--radius-pill); }
+
+/* ─── Selection ─── */
+::selection { background: var(--primary); color: #fff; }
+
+/* ─── Animations ─── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes pulse-ring {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50%       { transform: scale(1.05); opacity: 0.4; }
+}
+@keyframes drift {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(-12px) rotate(1deg); }
+  66%       { transform: translateY(-6px) rotate(-1deg); }
+}
+@keyframes flowLine {
+  from { stroke-dashoffset: 300; }
+  to   { stroke-dashoffset: 0; }
+}
+/* Fade + slight rise — avoid scale() on SVG <g> (default origin breaks column alignment) */
+@keyframes nodeAppear {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes expandDown {
+  from { opacity: 0; transform: translateY(-10px); max-height: 0; }
+  to   { opacity: 1; transform: translateY(0); max-height: 2000px; }
+}
+
+.animate-fade-up   { animation: fadeUp 0.7s var(--transition) both; }
+.animate-fade-in   { animation: fadeIn 0.5s ease both; }
+.animate-drift     { animation: drift 8s ease-in-out infinite; }
+
+/* ─── Grain overlay ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
+
+/* ─── Chip ─── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(210, 141, 119, 0.12);
+  color: var(--primary);
+  border: 1px solid rgba(210, 141, 119, 0.2);
+}
+
+.chip.green {
+  background: rgba(61, 74, 62, 0.1);
+  color: var(--tertiary);
+  border-color: rgba(61, 74, 62, 0.15);
+}
+
+[data-theme="dark"] .chip.green {
+  background: rgba(106, 122, 107, 0.15);
+  color: var(--on-surface-variant);
+}
+
+/* ─── Section headings ─── */
+.section-label {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--on-surface);
+  line-height: 1.1;
+}

@@ -248,7 +248,7 @@ const DiagramMultimodal = ({ dark }) => {
   const dashCx = 700          // Dashboard center-x
 
   return (
-    <svg viewBox="0 0 1020 800" width={1020} height={800} style={{ display: 'block', maxWidth: 'none' }}>
+    <svg viewBox="0 0 1200 1000" width={1200} height={1000} style={{ display: 'block', maxWidth: 'none' }}>
       <defs>
         <marker id="archArrowEndMultimodal" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="strokeWidth">
           <path d="M0,0 L7,3.5 L0,7 Z" fill="#D28D77" opacity="0.72" />
@@ -340,11 +340,11 @@ const DiagramMultimodal = ({ dark }) => {
       {/* WORKER AGENTS group box + nodes */}
       <rect x={workerCx - 75} y={310} width={150} height={168} rx="14" fill={dark ? 'rgba(61,74,62,0.22)' : 'rgba(61,74,62,0.07)'} stroke="rgba(61,74,62,0.18)" strokeWidth="1" />
       <text x={workerCx} y={304} textAnchor="middle" fontSize="9" fill="#6A7A6B" fontFamily="Manrope" fontWeight="700" letterSpacing="0.12em">WORKER AGENTS</text>
-      
+
       {/* External Sub-services for Video Agent */}
       <ArchNode x={235} y={270} w={125} h={40} color="#7A6B8E" label="Transcription API" sub="Cloud Run service" delay={0.68} />
       <ArchNode x={385} y={270} w={125} h={40} color="#6B8E7A" label="Vision LLM" sub="NSFW / safety check" delay={0.69} />
-      
+
       {/* Connections from Video Agent to Sub-services */}
       <ArchSegment x1={300} y1={331} x2={245} y2={290} delay={0.71} />
       <ArchSegment x1={320} y1={331} x2={375} y2={290} delay={0.71} />
@@ -373,26 +373,26 @@ const DiagramMultimodal = ({ dark }) => {
       {/* Dashboard */}
       <ArchNode x={dashCx} y={375} w={110} h={40} color="#4A7A6B" label="📊 Dashboard" sub="Looker Studio" delay={1} />
 
-      {/* Annotations */}
+      {/* Annotations
       <text x={810} y={365} textAnchor="start" fontSize="9" fill="#6A7A6B" fontFamily="Manrope,sans-serif" fontWeight="600">Per-stage scores</text>
-      <text x={810} y={381} textAnchor="start" fontSize="8" fill={dark ? '#9AAA9B' : '#6A7A6B'} fontFamily="Manrope,sans-serif">Audit trail · appeals · exports</text>
+      <text x={810} y={381} textAnchor="start" fontSize="8" fill={dark ? '#9AAA9B' : '#6A7A6B'} fontFamily="Manrope,sans-serif">Audit trail · appeals · exports</text> */}
 
       {/* "What students ship" context box */}
-      <rect x={750} y={410} width={270} height={180} rx="16" fill={dark ? 'rgba(210,141,119,0.06)' : 'rgba(210,141,119,0.1)'} stroke="rgba(210,141,119,0.25)" strokeWidth="1" />
-      <text x={870} y={434} textAnchor="middle" fontSize="9" fill="#D28D77" fontFamily="Manrope,sans-serif" fontWeight="700" letterSpacing="0.14em" style={{ textTransform: 'uppercase' }}>What students ship</text>
-      <text x={765} y={456} fontSize="8.5" fill={dark ? '#C8D0C8' : '#3D4A3E'} fontFamily="Manrope,sans-serif">
-        Teams pick community projects (Y1–Y4), interview locals,
+      <rect x={850} y={110} width={290} height={180} rx="16" fill={dark ? 'rgba(210,141,119,0.06)' : 'rgba(210,141,119,0.1)'} stroke="rgba(210,141,119,0.25)" strokeWidth="1" />
+      <text x={970} y={134} textAnchor="middle" fontSize="9" fill="#D28D77" fontFamily="Manrope,sans-serif" fontWeight="700" letterSpacing="0.14em" style={{ textTransform: 'uppercase' }}>What students ship</text>
+      <text x={865} y={156} fontSize="8.5" fill={dark ? '#C8D0C8' : '#3D4A3E'} fontFamily="Manrope,sans-serif">
+        Student teams comes up unique business ideas, interview locals,
       </text>
-      <text x={765} y={472} fontSize="8.5" fill={dark ? '#C8D0C8' : '#3D4A3E'} fontFamily="Manrope,sans-serif">
+      <text x={865} y={172} fontSize="8.5" fill={dark ? '#C8D0C8' : '#3D4A3E'} fontFamily="Manrope,sans-serif">
         iterate lean models, reflect together — low resource footprint.
       </text>
-      <text x={765} y={500} fontSize="8.5" fill={dark ? '#C8D0C8' : '#3D4A3E'} fontFamily="Manrope,sans-serif">
+      <text x={865} y={200} fontSize="8.5" fill={dark ? '#C8D0C8' : '#3D4A3E'} fontFamily="Manrope,sans-serif">
         We validate idea quality, visual evidence, spoken pitch, and
       </text>
-      <text x={765} y={516} fontSize="8.5" fill={dark ? '#C8D0C8' : '#3D4A3E'} fontFamily="Manrope,sans-serif">
+      <text x={865} y={216} fontSize="8.5" fill={dark ? '#C8D0C8' : '#3D4A3E'} fontFamily="Manrope,sans-serif">
         proof-of-execution so each step unlocks the next in the graph.
       </text>
-      <text x={765} y={550} fontSize="8" fill="#6A7A6B" fontFamily="Manrope,sans-serif" fontStyle="italic">
+      <text x={865} y={250} fontSize="8" fill="#6A7A6B" fontFamily="Manrope,sans-serif" fontStyle="italic">
         Shiksha — government schools · teacher-led · real-world learning
       </text>
 
@@ -417,7 +417,7 @@ const DiagramMultimodal = ({ dark }) => {
 
       {/* RabbitMQ */}
       <ArchNode x={240} y={670} w={150} h={44} color="#D28D77" label="RabbitMQ Broker" sub="Message Queues & Fanout" delay={1.1} />
-      
+
       {/* Cloud Run */}
       <ArchNode x={510} y={670} w={200} h={44} color="secondary" label="Cloud Run Services & Jobs" sub="Auto-scaling elastic compute" delay={1.2} />
 
@@ -427,7 +427,7 @@ const DiagramMultimodal = ({ dark }) => {
       <ArchNode x={780} y={670} w={150} h={44} color="primary" label="Database Poolers" sub="Connection Multiplexing" delay={1.4} />
 
       <ArchArrowHRight x1={610} y1={670} x2={705} delay={1.5} />
-      
+
       {/* Scale Annotations */}
       <text x={240} y={715} textAnchor="middle" fontSize="8.5" fill={dark ? '#9AAA9B' : '#6A7A6B'} fontFamily="Manrope,sans-serif">Absorbs massive bursts of 100k+</text>
       <text x={240} y={729} textAnchor="middle" fontSize="8.5" fill={dark ? '#9AAA9B' : '#6A7A6B'} fontFamily="Manrope,sans-serif">webhooks to prevent data loss.</text>

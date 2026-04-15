@@ -40,7 +40,7 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Build
-        run: pnpm run build
+        run: pnpm run build --base=/someet-sahoo.github.io/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

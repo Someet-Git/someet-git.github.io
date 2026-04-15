@@ -104,6 +104,10 @@ body {
   from { stroke-dashoffset: 300; }
   to   { stroke-dashoffset: 0; }
 }
+@keyframes flowDots {
+  from { stroke-dashoffset: 300; }
+  to   { stroke-dashoffset: 0; }
+}
 /* Fade + slight rise — avoid scale() on SVG <g> (default origin breaks column alignment) */
 @keyframes nodeAppear {
   from { opacity: 0; transform: translateY(8px); }
@@ -114,9 +118,27 @@ body {
   to   { opacity: 1; transform: translateY(0); max-height: 2000px; }
 }
 
+
 .animate-fade-up   { animation: fadeUp 0.7s var(--transition) both; }
 .animate-fade-in   { animation: fadeIn 0.5s ease both; }
 .animate-drift     { animation: drift 8s ease-in-out infinite; }
+.arch-flow-animated { animation: flowDots 12s linear infinite; }
+
+.arch-node {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s ease;
+  will-change: transform, filter;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+  cursor: crosshair;
+}
+.arch-node:hover {
+  transform: scale(1.06);
+  filter: drop-shadow(0 0 16px var(--primary-light));
+}
+[data-theme="dark"] .arch-node:hover {
+  filter: drop-shadow(0 0 20px rgba(210, 141, 119, 0.5));
+}
 
 /* ─── Grain overlay ─── */
 body::before {

@@ -1,4 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { motion, useMotionValue } from 'framer-motion'
+import Particles from 'react-tsparticles'
+import { loadSlim } from 'tsparticles-slim'
+import Lottie from 'lottie-react'
 
 /* ─── Theme Toggle Icon ─── */
 const SunIcon = () => (
@@ -42,63 +46,144 @@ const MailIcon = () => (
     <polyline points="22,6 12,13 2,6" />
   </svg>
 )
+const CalendarIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+  </svg>
+)
 
 /* ─── Architecture Diagram components ─── */
+
+/* Option B: Draggable Framework Primitives */
+const DraggableArchNode = ({ x, y, delay=0, children }) => {
+  return (
+    <motion.g
+      drag
+      dragMomentum={false}
+      style={{ x, y, cursor: 'grab' }}
+      whileTap={{ cursor: 'grabbing' }}
+      whileDrag={{ scale: 1.05, filter: 'drop-shadow(0px 10px 20px rgba(0,0,0,0.3))' }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay }}
+    >
+      {children}
+    </motion.g>
+  )
+}
+
+const DynamicEdgeLabelPos = ({ fromX, fromY, toX, toY, children }) => {
+  const [pos, setPos] = useState({ x: 0, y: 0 })
+  useEffect(() => {
+    const update = () => {
+      const fx = typeof fromX === 'object' && fromX.get ? fromX.get() : fromX
+      const fy = typeof fromY === 'object' && fromY.get ? fromY.get() : fromY
+      const tx = typeof toX === 'object' && toX.get ? toX.get() : toX
+      const ty = typeof toY === 'object' && toY.get ? toY.get() : toY
+      setPos({ x: (fx + tx) / 2, y: (fy + ty) / 2 })
+    }
+    update()
+    const unsubs = []
+    if (fromX && fromX.on) unsubs.push(fromX.on('change', update))
+    if (fromY && fromY.on) unsubs.push(fromY.on('change', update))
+    if (toX && toX.on) unsubs.push(toX.on('change', update))
+    if (toY && toY.on) unsubs.push(toY.on('change', update))
+    return () => unsubs.forEach(u => u && u())
+  }, [fromX, fromY, toX, toY])
+  return <text x={pos.x} y={pos.y - 6} textAnchor="middle" fontSize="7.5" fill="#D28D77" fontFamily="Manrope,sans-serif" fontWeight="600" opacity="0.9">{children}</text>
+}
+
+const DynamicEdge = ({ fromX, fromY, toX, toY, delay=0, label }) => (
+  <g>
+    <motion.line 
+      x1={fromX} y1={fromY} x2={toX} y2={toY} 
+      stroke="#D28D77" strokeWidth="1.5" strokeDasharray="6 3" opacity="0.62"
+      markerEnd="url(#archArrowEndScribeDrag)"
+      initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay, duration: 0.8 }}
+    />
+    <motion.line 
+      x1={fromX} y1={fromY} x2={toX} y2={toY} stroke="var(--primary-light)" strokeWidth="2.5" strokeDasharray="4 24"
+      className="arch-flow-animated" initial={{ opacity: 0 }} animate={{ opacity: 0.7 }} transition={{ delay: delay + 0.8 }} 
+    />
+    {label && <DynamicEdgeLabelPos fromX={fromX} fromY={fromY} toX={toX} toY={toY}>{label}</DynamicEdgeLabelPos>}
+  </g>
+)
+
+const LottieNode = ({ x, y, url, w = 60, h = 60 }) => {
+  const [data, setData] = useState(null)
+  useEffect(() => {
+    fetch(url).then(r => r.json()).then(setData).catch(e => console.error(e))
+  }, [url])
+  return (
+    <foreignObject x={x - w / 2} y={y - h / 2} width={w} height={h}>
+      {data && <Lottie animationData={data} loop={true} style={{ width: w, height: h }} />}
+    </foreignObject>
+  )
+}
 
 const ArchNode = ({ x, y, w = 130, h = 44, color = '#D28D77', label, sub, delay = 0, dark }) => {
   const bg = color === 'primary' ? '#D28D77' : color === 'secondary' ? '#3D4A3E' : color === 'tertiary' ? '#6A7A6B' : color
   const textCol = (color === 'secondary' || bg === '#3D4A3E') ? '#E8DDD0' : '#fff'
   return (
-    <g style={{ animation: `nodeAppear 0.5s ${delay}s both` }}>
+    <motion.g 
+      className="arch-node"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ scale: 1.08 }}
+      transition={{ delay, type: "spring", stiffness: 350, damping: 20 }}
+    >
       <rect x={x - w / 2} y={y - h / 2} width={w} height={h} rx="10" fill={bg} opacity="0.92" />
       <text x={x} y={sub ? y - 6 : y + 4} textAnchor="middle" fill={textCol} fontSize="11" fontFamily="Manrope,sans-serif" fontWeight="600">{label}</text>
       {sub && <text x={x} y={y + 9} textAnchor="middle" fill={textCol} fontSize="9" fontFamily="Manrope,sans-serif" opacity="0.75">{sub}</text>}
-    </g>
+    </motion.g>
   )
 }
 
 const ArchArrow = ({ x1, y1, x2, y2, delay = 0, label }) => (
   <g>
-    <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#D28D77" strokeWidth="1.5" strokeDasharray="6 3"
-      style={{ animation: `flowLine 0.8s ${delay}s both` }} strokeDashoffset="300" opacity="0.6" />
-    <polygon points={`${x2},${y2} ${x2 - 5},${y2 - 8} ${x2 + 5},${y2 - 8}`} fill="#D28D77" opacity="0.6"
-      style={{ animation: `fadeIn 0.3s ${delay + 0.8}s both`, opacity: 0 }} />
+    <motion.line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#D28D77" strokeWidth="1.5" strokeDasharray="6 3" opacity="0.6"
+      initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay, duration: 0.8, ease: "easeOut" }} />
+    <motion.line x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--primary-light)" strokeWidth="2.5" strokeDasharray="4 24"
+      className="arch-flow-animated" initial={{ opacity: 0 }} animate={{ opacity: 0.7 }} transition={{ delay: delay + 0.8 }} />
+    <motion.polygon points={`${x2},${y2} ${x2 - 5},${y2 - 8} ${x2 + 5},${y2 - 8}`} fill="#D28D77" opacity="0.6"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: delay + 0.8, duration: 0.3 }} />
     {label && <text x={(x1 + x2) / 2 + 6} y={(y1 + y2) / 2} fontSize="9" fill="#6A7A6B" fontFamily="Manrope,sans-serif">{label}</text>}
   </g>
 )
 const ArchArrowH = ({ x1, y1, x2, y2, delay = 0 }) => (
   <g>
-    <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#D28D77" strokeWidth="1.5" strokeDasharray="6 3"
-      style={{ animation: `flowLine 0.8s ${delay}s both` }} strokeDashoffset="300" opacity="0.6" />
-    <polygon points={`${x2},${y2} ${x2 - 8},${y2 - 5} ${x2 - 8},${y2 + 5}`} fill="#D28D77" opacity="0.6"
-      style={{ animation: `fadeIn 0.3s ${delay + 0.8}s both`, opacity: 0 }} />
+    <motion.line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#D28D77" strokeWidth="1.5" strokeDasharray="6 3" opacity="0.6"
+      initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay, duration: 0.8, ease: "easeOut" }} />
+    <motion.line x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--primary-light)" strokeWidth="2.5" strokeDasharray="4 24"
+      className="arch-flow-animated" initial={{ opacity: 0 }} animate={{ opacity: 0.7 }} transition={{ delay: delay + 0.8 }} />
+    <motion.polygon points={`${x2},${y2} ${x2 - 8},${y2 - 5} ${x2 - 8},${y2 + 5}`} fill="#D28D77" opacity="0.6"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: delay + 0.8, duration: 0.3 }} />
   </g>
 )
 
 /* Horizontal connector only — arrowhead at the right endpoint (x2, y2) */
 const ArchArrowHRight = ({ x1, y1, x2, delay = 0 }) => (
   <g>
-    <line x1={x1} y1={y1} x2={x2} y2={y1} stroke="#D28D77" strokeWidth="1.5" strokeDasharray="6 3"
-      style={{ animation: `flowLine 0.8s ${delay}s both` }} strokeDashoffset="300" opacity="0.6" />
-    <polygon points={`${x2},${y1} ${x2 - 8},${y1 - 5} ${x2 - 8},${y1 + 5}`} fill="#D28D77" opacity="0.6" />
+    <motion.line x1={x1} y1={y1} x2={x2} y2={y1} stroke="#D28D77" strokeWidth="1.5" strokeDasharray="6 3" opacity="0.6"
+      initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay, duration: 0.8, ease: "easeOut" }} />
+    <motion.line x1={x1} y1={y1} x2={x2} y2={y1} stroke="var(--primary-light)" strokeWidth="2.5" strokeDasharray="4 24"
+      className="arch-flow-animated" initial={{ opacity: 0 }} animate={{ opacity: 0.7 }} transition={{ delay: delay + 0.8 }} />
+    <motion.polygon points={`${x2},${y1} ${x2 - 8},${y1 - 5} ${x2 - 8},${y1 + 5}`} fill="#D28D77" opacity="0.6"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: delay + 0.8, duration: 0.3 }} />
   </g>
 )
 
 /* Any straight segment — uses SVG marker for correct direction on diagonals */
 const ArchSegment = ({ x1, y1, x2, y2, delay = 0, markerId = 'archArrowEndMultimodal' }) => (
-  <line
-    x1={x1}
-    y1={y1}
-    x2={x2}
-    y2={y2}
-    stroke="#D28D77"
-    strokeWidth="1.5"
-    strokeDasharray="6 3"
-    opacity="0.62"
-    markerEnd={`url(#${markerId})`}
-    style={{ animation: `flowLine 0.85s ${delay}s both` }}
-    strokeDashoffset="280"
-  />
+  <g>
+    <motion.line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#D28D77" strokeWidth="1.5" strokeDasharray="6 3" opacity="0.62" markerEnd={`url(#${markerId})`}
+      initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay, duration: 0.85, ease: "easeOut" }} />
+    <motion.line x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--primary-light)" strokeWidth="2.5" strokeDasharray="4 24"
+      className="arch-flow-animated" initial={{ opacity: 0 }} animate={{ opacity: 0.7 }} transition={{ delay: delay + 0.85 }} />
+  </g>
 )
 
 /* Compact step for Shiksha validation journey */
@@ -110,24 +195,27 @@ const ArchStage = ({ x, y, num, label, sub, delay = 0, dark }) => {
   const tc = dark ? '#DDD8CD' : '#2C3A2D'
   const ts = dark ? '#9AAA9B' : '#6A7A6B'
   return (
-    <g style={{ animation: `nodeAppear 0.45s ${delay}s both` }}>
+    <motion.g 
+      className="arch-node"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ scale: 1.08 }}
+      transition={{ delay, type: "spring", stiffness: 350, damping: 20 }}
+    >
       <rect x={x - w / 2} y={y - h / 2} width={w} height={h} rx="10" fill={fill} stroke={stroke} strokeWidth="1" />
       <text x={x} y={sub ? y - 7 : y + 3} textAnchor="middle" fill={tc} fontSize="10" fontFamily="Manrope,sans-serif" fontWeight="700">{num} {label}</text>
       {sub && <text x={x} y={y + 9} textAnchor="middle" fill={ts} fontSize="8" fontFamily="Manrope,sans-serif">{sub}</text>}
-    </g>
+    </motion.g>
   )
 }
 
 const ArchStageArrow = ({ x1, x2, y, delay = 0 }) => (
-  <line
-    x1={x1} y1={y} x2={x2} y2={y}
-    stroke="#D28D77"
-    strokeWidth="1.25"
-    strokeDasharray="5 3"
-    opacity="0.55"
-    style={{ animation: `flowLine 0.7s ${delay}s both` }}
-    strokeDashoffset="120"
-  />
+  <g>
+    <motion.line x1={x1} y1={y} x2={x2} y2={y} stroke="#D28D77" strokeWidth="1.25" strokeDasharray="5 3" opacity="0.55"
+      initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay, duration: 0.7, ease: "easeOut" }} />
+    <motion.line x1={x1} y1={y} x2={x2} y2={y} stroke="var(--primary-light)" strokeWidth="2.5" strokeDasharray="4 24"
+      className="arch-flow-animated" initial={{ opacity: 0 }} animate={{ opacity: 0.7 }} transition={{ delay: delay + 0.7 }} />
+  </g>
 )
 
 /* Diagram 1 — Multimodal validation + Shiksha journey + ingress (wide canvas) */
@@ -579,7 +667,7 @@ const DiagramScribe = ({ dark }) => (
 
     {/* Supabase */}
     <ArchNode x={410} y={92} w={128} h={44} color="secondary" label="Storage" sub="audio-files bucket" delay={0.05} />
-    <ArchNode x={410} y={188} w={188} h={48} color="#5E7A8E" label="Postgres" sub="transcriptions table" delay={0.06} />
+    <ArchNode x={410} y={188} w={128} h={44} color="#3D6B4F" label="Postgres" sub="transcriptions DB" delay={0.06} />
     <ArchNode x={410} y={298} w={136} h={40} color="#6B8E6B" label="PG Realtime" sub="postgres_changes" delay={0.07} />
     <ArchNode x={410} y={372} w={120} h={38} color="#6A7A6B" label="Auth" sub="email / password" delay={0.09} />
     <ArchNode x={340} y={448} w={118} h={38} color="primary" label="Edge: translate" delay={0.11} />
@@ -703,6 +791,109 @@ const DiagramScribe = ({ dark }) => (
     <ArchSegment x1={136} y1={430} x2={136} y2={481} delay={0.29} markerId="archArrowEndScribe" />
   </svg>
 )
+
+const DiagramScribeDraggable = ({ dark }) => {
+  const fuX = useMotionValue(136); const fuY = useMotionValue(92);
+  const rsX = useMotionValue(136); const rsY = useMotionValue(218);
+  const tlX = useMotionValue(136); const tlY = useMotionValue(308);
+  const tvX = useMotionValue(136); const tvY = useMotionValue(408);
+  const redisX = useMotionValue(136); const redisY = useMotionValue(500);
+  const storageX = useMotionValue(410); const storageY = useMotionValue(92);
+  const pgX = useMotionValue(410); const pgY = useMotionValue(188);
+  const realX = useMotionValue(410); const realY = useMotionValue(298);
+  const authX = useMotionValue(410); const authY = useMotionValue(372);
+  const edge1X = useMotionValue(340); const edge1Y = useMotionValue(448);
+  const edge2X = useMotionValue(480); const edge2Y = useMotionValue(448);
+  const postX = useMotionValue(670); const postY = useMotionValue(92);
+  const chunkX = useMotionValue(670); const chunkY = useMotionValue(154);
+  const diarX = useMotionValue(670); const diarY = useMotionValue(212);
+  const transX = useMotionValue(670); const transY = useMotionValue(270);
+  const recX = useMotionValue(670); const recY = useMotionValue(328);
+
+  const m = {
+    fu: { x: fuX, y: fuY },
+    rs: { x: rsX, y: rsY },
+    tl: { x: tlX, y: tlY },
+    tv: { x: tvX, y: tvY },
+    redis: { x: redisX, y: redisY },
+    storage: { x: storageX, y: storageY },
+    pg: { x: pgX, y: pgY },
+    real: { x: realX, y: realY },
+    auth: { x: authX, y: authY },
+    edge1: { x: edge1X, y: edge1Y },
+    edge2: { x: edge2X, y: edge2Y },
+    post: { x: postX, y: postY },
+    chunk: { x: chunkX, y: chunkY },
+    diar: { x: diarX, y: diarY },
+    trans: { x: transX, y: transY },
+    rec: { x: recX, y: recY }
+  };
+
+  return (
+    <svg viewBox="0 0 820 560" width={820} height={560} style={{ display: 'block', maxWidth: '100%', overflow: 'visible' }}>
+      <defs>
+        <marker id="archArrowEndScribeDrag" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L7,3.5 L0,7 Z" fill="#D28D77" opacity="0.72" />
+        </marker>
+      </defs>
+
+      {/* ── Static Subgroup backgrounds ── */}
+      <ScribeSubgraph x={28} y={38} w={216} h={500} title="Frontend · Vite + React SPA" dark={dark} />
+      <ScribeSubgraph x={262} y={38} w={278} h={448} title="Supabase" dark={dark} />
+      <ScribeSubgraph x={558} y={38} w={232} h={328} title="Python · FastAPI" dark={dark} />
+
+      {/* ── Title ── */}
+      <text x={410} y={24} textAnchor="middle" fill="#D28D77" fontSize="13" fontFamily="Manrope,sans-serif" fontWeight="700" opacity="0.85">
+        Scribe — system architecture
+      </text>
+
+      {/* ── Dynamic Edges ── */}
+      <DynamicEdge fromX={m.fu.x} fromY={m.fu.y} toX={m.storage.x} toY={m.storage.y} delay={0.02} label="① TUS upload" />
+      <DynamicEdge fromX={m.fu.x} fromY={m.fu.y} toX={m.pg.x} toY={m.pg.y} delay={0.03} label="② insert pending" />
+      <DynamicEdge fromX={m.fu.x} fromY={m.fu.y} toX={m.post.x} toY={m.post.y} delay={0.04} label="③ POST /transcribe" />
+      <DynamicEdge fromX={m.storage.x} fromY={m.storage.y} toX={m.post.x} toY={m.post.y} delay={0.16} label="④ download audio" />
+
+      <DynamicEdge fromX={m.post.x} fromY={m.post.y} toX={m.chunk.x} toY={m.chunk.y} delay={0.17} />
+      <DynamicEdge fromX={m.chunk.x} fromY={m.chunk.y} toX={m.diar.x} toY={m.diar.y} delay={0.18} />
+      <DynamicEdge fromX={m.diar.x} fromY={m.diar.y} toX={m.trans.x} toY={m.trans.y} delay={0.19} />
+      <DynamicEdge fromX={m.trans.x} fromY={m.trans.y} toX={m.rec.x} toY={m.rec.y} delay={0.20} />
+
+      <DynamicEdge fromX={m.trans.x} fromY={m.trans.y} toX={m.pg.x} toY={m.pg.y} delay={0.21} label="⑤ chunk progress" />
+      <DynamicEdge fromX={m.rec.x} fromY={m.rec.y} toX={m.pg.x} toY={m.pg.y} delay={0.22} label="⑥ completed" />
+
+      <DynamicEdge fromX={m.pg.x} fromY={m.pg.y} toX={m.real.x} toY={m.real.y} delay={0.23} />
+      <DynamicEdge fromX={m.real.x} fromY={m.real.y} toX={m.rs.x} toY={m.rs.y} delay={0.24} />
+      <DynamicEdge fromX={m.rs.x} fromY={m.rs.y} toX={m.tl.x} toY={m.tl.y} delay={0.25} />
+
+      <DynamicEdge fromX={m.tv.x} fromY={m.tv.y} toX={m.pg.x} toY={m.pg.y} delay={0.26} label="read · signed URL" />
+      <DynamicEdge fromX={m.tv.x} fromY={m.tv.y} toX={m.edge1.x} toY={m.edge1.y} delay={0.27} label="translate" />
+      <DynamicEdge fromX={m.tv.x} fromY={m.tv.y} toX={m.edge2.x} toY={m.edge2.y} delay={0.28} label="Google export" />
+      <DynamicEdge fromX={m.tv.x} fromY={m.tv.y} toX={m.redis.x} toY={m.redis.y} delay={0.29} />
+
+      {/* ── Frontend Nodes ── */}
+      <DraggableArchNode x={m.fu.x} y={m.fu.y} delay={0.01}><ArchNode x={0} y={0} w={124} h={44} color="#6A7A6B" label="FileUpload" sub="TUS · resumable" /></DraggableArchNode>
+      <DraggableArchNode x={m.rs.x} y={m.rs.y} delay={0.08}><ArchNode x={0} y={0} w={124} h={40} color="#7A6B8E" label="Realtime Sub" sub="Supabase channel" /></DraggableArchNode>
+      <DraggableArchNode x={m.tl.x} y={m.tl.y} delay={0.10}><ArchNode x={0} y={0} w={124} h={40} color="#6B8E7A" label="TranscriptionList" /></DraggableArchNode>
+      <DraggableArchNode x={m.tv.x} y={m.tv.y} delay={0.12}><ArchNode x={0} y={0} w={124} h={44} color="#8B7A6E" label="TranscriptViewer" sub="read + actions" /></DraggableArchNode>
+      <DraggableArchNode x={m.redis.x} y={m.redis.y} delay={0.28}><ArchNode x={0} y={0} w={130} h={38} color="#B83030" label="Redis Cache" sub="Transcript read cache" /></DraggableArchNode>
+
+      {/* ── Supabase Nodes ── */}
+      <DraggableArchNode x={m.storage.x} y={m.storage.y} delay={0.05}><ArchNode x={0} y={0} w={128} h={44} color="secondary" label="Storage" sub="audio-files bucket" /></DraggableArchNode>
+      <DraggableArchNode x={m.pg.x} y={m.pg.y} delay={0.06}><ArchNode x={0} y={0} w={128} h={44} color="#3D6B4F" label="Postgres" sub="transcriptions DB" /></DraggableArchNode>
+      <DraggableArchNode x={m.real.x} y={m.real.y} delay={0.07}><ArchNode x={0} y={0} w={136} h={40} color="#6B8E6B" label="PG Realtime" sub="postgres_changes" /></DraggableArchNode>
+      <DraggableArchNode x={m.auth.x} y={m.auth.y} delay={0.09}><ArchNode x={0} y={0} w={120} h={38} color="#6A7A6B" label="Auth" sub="email / password" /></DraggableArchNode>
+      <DraggableArchNode x={m.edge1.x} y={m.edge1.y} delay={0.11}><ArchNode x={0} y={0} w={118} h={38} color="primary" label="Edge: translate" /></DraggableArchNode>
+      <DraggableArchNode x={m.edge2.x} y={m.edge2.y} delay={0.11}><ArchNode x={0} y={0} w={118} h={38} color="primary" label="Edge: export" sub="Google" /></DraggableArchNode>
+
+      {/* ── Backend Nodes ── */}
+      <DraggableArchNode x={m.post.x} y={m.post.y} delay={0.04}><ArchNode x={0} y={0} w={132} h={44} color="primary" label="POST /transcribe" /></DraggableArchNode>
+      <DraggableArchNode x={m.chunk.x} y={m.chunk.y} delay={0.13}><ArchNode x={0} y={0} w={132} h={40} color="#8E7A6B" label="Audio chunker" sub="FFmpeg · silence" /></DraggableArchNode>
+      <DraggableArchNode x={m.diar.x} y={m.diar.y} delay={0.135}><ArchNode x={0} y={0} w={132} h={40} color="#8B6F5E" label="Diarization" sub="pyannote-audio" /></DraggableArchNode>
+      <DraggableArchNode x={m.trans.x} y={m.trans.y} delay={0.14}><ArchNode x={0} y={0} w={132} h={40} color="#6B8E7A" label="Transcriber" sub="Gemini + speaker ctx" /></DraggableArchNode>
+      <DraggableArchNode x={m.rec.x} y={m.rec.y} delay={0.15}><ArchNode x={0} y={0} w={132} h={40} color="secondary" label="Reconciler" sub="chunk boundaries" /></DraggableArchNode>
+    </svg>
+  )
+}
 
 /* ─── Architecture panels data ─── */
 const archPanels = [
@@ -835,6 +1026,9 @@ const ArchPanel = ({ panel, dark }) => {
           )}
 
           {/* Diagram — wide multimodal board uses pannable canvas */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.6rem' }}>
+            <a href={`#/diagram/${panel.id}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.75rem', textDecoration: 'none', color: 'var(--primary)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><ExternalLink /> Full Screen View</a>
+          </div>
           {panel.diagramCanvas ? (
             <ArchDiagramCanvas dark={dark}>
               <Diagram dark={dark} />
@@ -1098,6 +1292,7 @@ const Experience = ({ dark }) => (
 /* ─── Projects ─── */
 const projects = [
   {
+    id: 'scribe',
     icon: '🎙️',
     title: 'Scribe',
     full: 'Multi-Agent Audio Transcription Platform',
@@ -1178,7 +1373,10 @@ const ProjectCard = ({ project, dark }) => {
           </ul>
           {Diagram && (
             <>
-              <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--primary)', marginBottom: '0.65rem' }}>System architecture</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--primary)' }}>System architecture</div>
+                {project.id && <a href={`#/diagram/${project.id}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.75rem', textDecoration: 'none', color: 'var(--primary)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><ExternalLink /> Full Screen</a>}
+              </div>
               <div style={{
                 overflowX: 'auto',
                 borderRadius: '1rem',
@@ -1294,12 +1492,19 @@ const Footer = () => (
       </h2>
       <p style={{ color: 'var(--on-surface-variant)', marginBottom: '2rem', fontSize: '0.95rem' }}>someetsahoo654@gmail.com · +91 9853951961</p>
       <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-        <a href="mailto:someetsahoo654@gmail.com" style={{
+        <a href="https://cal.com/someet" target="_blank" rel="noreferrer" style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
           background: 'var(--primary)', color: '#fff',
           padding: '0.7rem 1.5rem', borderRadius: 'var(--radius-pill)',
           fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none',
           boxShadow: 'var(--shadow-primary)',
+        }}><CalendarIcon /> Book a call</a>
+        <a href="mailto:someetsahoo654@gmail.com" style={{
+          display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+          background: 'var(--surface-container)', color: 'var(--on-surface)',
+          padding: '0.7rem 1.5rem', borderRadius: 'var(--radius-pill)',
+          fontSize: '0.85rem', fontWeight: 600, textDecoration: 'none',
+          border: '1px solid var(--border)',
         }}><MailIcon /> Email me</a>
         <a href="https://www.linkedin.com/in/someet-sahoo/" target="_blank" rel="noreferrer" style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
@@ -1326,13 +1531,9 @@ const Footer = () => (
 
 /* ─── App Root ─── */
 export default function App() {
-  const [dark, setDark] = useState(false)
+  const [dark, setDark] = useState(true)
   const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const pref = window.matchMedia('(prefers-color-scheme: dark)').matches
-    setDark(pref)
-  }, [])
+  const [hash, setHash] = useState(window.location.hash)
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
@@ -1343,6 +1544,74 @@ export default function App() {
     window.addEventListener('scroll', handler)
     return () => window.removeEventListener('scroll', handler)
   }, [])
+
+  useEffect(() => {
+    const handleHash = () => setHash(window.location.hash)
+    window.addEventListener('hashchange', handleHash)
+    return () => window.removeEventListener('hashchange', handleHash)
+  }, [])
+
+  const particlesInit = useCallback(async engine => {
+    await loadSlim(engine);
+  }, []);
+
+  /* Full screen diagram view route check */
+  const match = hash.match(/^#\/diagram\/(.+)$/)
+  if (match) {
+    const diagId = match[1]
+    const panel = archPanels.find(p => p.id === diagId) 
+    const isScribe = diagId === 'scribe'
+    const DiagramRef = panel ? panel.diagram : (isScribe ? DiagramScribeDraggable : null)
+
+    if (DiagramRef) {
+      return (
+          <div style={{ padding: '2rem 1rem', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+            <Particles 
+              id="tsparticles" 
+              init={particlesInit} 
+              options={{
+                background: { color: { value: 'transparent' } },
+                particles: {
+                  number: { value: 70 },
+                  color: { value: '#D28D77' },
+                  opacity: { value: 0.2, animation: { enable: true, speed: 0.5, minimumValue: 0.1 } },
+                  size: { value: 2 },
+                  links: { enable: true, color: '#D28D77', opacity: 0.1, distance: 150 },
+                  move: { enable: true, speed: 0.6, direction: "top" }
+                }
+              }}
+              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}
+            />
+            <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', zIndex: 10 }}>
+              <a href="#" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary)', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>← Back to Portfolio</a>
+              <button 
+                onClick={() => setDark(v => !v)} 
+                title="Toggle Theme"
+                style={{
+                  background: 'var(--surface-container-low)', color: 'var(--on-surface)', border: '1px solid var(--border)',
+                  width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s ease',
+                  boxShadow: 'var(--shadow-sm)'
+                }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                {dark ? <SunIcon /> : <MoonIcon />}
+              </button>
+            </div>
+            <div style={{ width: '100%', maxWidth: '1200px', overflowX: 'auto', paddingBottom: '2rem' }}>
+              <div style={{ 
+                background: dark ? 'rgba(0,0,0,0.2)' : 'rgba(242,240,233,0.7)', 
+                padding: '2rem 1rem', borderRadius: '1rem', border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-lg)'
+              }}>
+                 <DiagramRef dark={dark} />
+              </div>
+            </div>
+          </div>
+      )
+    }
+  }
 
   return (
     <>

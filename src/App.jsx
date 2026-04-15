@@ -58,7 +58,7 @@ const CalendarIcon = () => (
 /* ─── Architecture Diagram components ─── */
 
 /* Option B: Draggable Framework Primitives */
-const DraggableArchNode = ({ x, y, delay=0, children }) => {
+const DraggableArchNode = ({ x, y, delay = 0, children }) => {
   return (
     <motion.g
       drag
@@ -96,17 +96,17 @@ const DynamicEdgeLabelPos = ({ fromX, fromY, toX, toY, children }) => {
   return <text x={pos.x} y={pos.y - 6} textAnchor="middle" fontSize="7.5" fill="#D28D77" fontFamily="Manrope,sans-serif" fontWeight="600" opacity="0.9">{children}</text>
 }
 
-const DynamicEdge = ({ fromX, fromY, toX, toY, delay=0, label }) => (
+const DynamicEdge = ({ fromX, fromY, toX, toY, delay = 0, label }) => (
   <g>
-    <motion.line 
-      x1={fromX} y1={fromY} x2={toX} y2={toY} 
+    <motion.line
+      x1={fromX} y1={fromY} x2={toX} y2={toY}
       stroke="#D28D77" strokeWidth="1.5" strokeDasharray="6 3" opacity="0.62"
       markerEnd="url(#archArrowEndScribeDrag)"
       initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay, duration: 0.8 }}
     />
-    <motion.line 
+    <motion.line
       x1={fromX} y1={fromY} x2={toX} y2={toY} stroke="var(--primary-light)" strokeWidth="2.5" strokeDasharray="4 24"
-      className="arch-flow-animated" initial={{ opacity: 0 }} animate={{ opacity: 0.7 }} transition={{ delay: delay + 0.8 }} 
+      className="arch-flow-animated" initial={{ opacity: 0 }} animate={{ opacity: 0.7 }} transition={{ delay: delay + 0.8 }}
     />
     {label && <DynamicEdgeLabelPos fromX={fromX} fromY={fromY} toX={toX} toY={toY}>{label}</DynamicEdgeLabelPos>}
   </g>
@@ -128,7 +128,7 @@ const ArchNode = ({ x, y, w = 130, h = 44, color = '#D28D77', label, sub, delay 
   const bg = color === 'primary' ? '#D28D77' : color === 'secondary' ? '#3D4A3E' : color === 'tertiary' ? '#6A7A6B' : color
   const textCol = (color === 'secondary' || bg === '#3D4A3E') ? '#E8DDD0' : '#fff'
   return (
-    <motion.g 
+    <motion.g
       className="arch-node"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -195,7 +195,7 @@ const ArchStage = ({ x, y, num, label, sub, delay = 0, dark }) => {
   const tc = dark ? '#DDD8CD' : '#2C3A2D'
   const ts = dark ? '#9AAA9B' : '#6A7A6B'
   return (
-    <motion.g 
+    <motion.g
       className="arch-node"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -248,7 +248,7 @@ const DiagramMultimodal = ({ dark }) => {
   const dashCx = 700          // Dashboard center-x
 
   return (
-    <svg viewBox="0 0 1020 630" width={1020} height={630} style={{ display: 'block', maxWidth: 'none' }}>
+    <svg viewBox="0 0 1020 800" width={1020} height={800} style={{ display: 'block', maxWidth: 'none' }}>
       <defs>
         <marker id="archArrowEndMultimodal" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="strokeWidth">
           <path d="M0,0 L7,3.5 L0,7 Z" fill="#D28D77" opacity="0.72" />
@@ -263,7 +263,7 @@ const DiagramMultimodal = ({ dark }) => {
         10,000+ government & private schools · up to 100k concurrent active submissions (design target)
       </text>
 
-      <ArchNode x={ingress[0].cx} y={ry} w={ingress[0].w} h={44} color="#6A7A6B" label="WhatsApp · Glific" sub="Student channel" delay={0} />
+      <ArchNode x={ingress[0].cx} y={ry} w={ingress[0].w} h={44} color="#6A7A6B" label="WhatsApp · Glific" sub="Student/teacher channel" delay={0} />
       <ArchArrowHRight x1={rOut(0)} y1={ry} x2={rIn(1)} delay={0.12} />
       <ArchNode x={ingress[1].cx} y={ry} w={ingress[1].w} h={44} color="secondary" label="GCP Cloud Functions" sub="Webhooks · normalise" delay={0.15} />
       <ArchArrowHRight x1={rOut(1)} y1={ry} x2={rIn(2)} delay={0.28} />
@@ -281,7 +281,7 @@ const DiagramMultimodal = ({ dark }) => {
       <ArchStageArrow x1={196} x2={264} y={200} delay={0.4} />
       <ArchStage x={320} y={200} num="②" label="Image" sub="Venture / pitch photo" delay={0.42} dark={dark} />
       <ArchStageArrow x1={376} x2={444} y={200} delay={0.46} />
-      <ArchStage x={500} y={200} num="③" label="Video" sub="Students on camera" delay={0.48} dark={dark} />
+      <ArchStage x={500} y={200} num="③" label="Video" sub="business video submission" delay={0.48} dark={dark} />
       <ArchStageArrow x1={556} x2={624} y={200} delay={0.52} />
       <ArchStage x={680} y={200} num="④" label="Proof" sub="Ops · evidence" delay={0.54} dark={dark} />
 
@@ -295,18 +295,35 @@ const DiagramMultimodal = ({ dark }) => {
       {/* ═══ ROW 3: Processing Pipeline ═══ */}
 
       {/* Ingestion → Routing Agent: wrap-around polyline */}
-      <polyline
-        points={`${rOut(2)},110 ${rOut(2)},590 36,590 36,${routeY} ${routeCx - routeW / 2},${routeY}`}
-        fill="none"
-        stroke="#D28D77"
-        strokeWidth="1.5"
-        strokeDasharray="6 3"
-        opacity="0.58"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-        style={{ animation: 'flowLine 1s 0.5s both' }}
-        strokeDashoffset="520"
-      />
+      <g>
+        <motion.polyline
+          points={`${ingress[2].cx},110 ${ingress[2].cx},124 35,124 35,${routeY} ${routeCx - routeW / 2},${routeY}`}
+          fill="none"
+          stroke="#D28D77"
+          strokeWidth="1.5"
+          strokeDasharray="6 3"
+          opacity="0.58"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          markerEnd="url(#archArrowEndMultimodal)"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ delay: 0.45, duration: 1.5, ease: "easeOut" }}
+        />
+        <motion.polyline
+          points={`${ingress[2].cx},110 ${ingress[2].cx},124 35,124 35,${routeY} ${routeCx - routeW / 2},${routeY}`}
+          fill="none"
+          stroke="var(--primary-light)"
+          strokeWidth="2.5"
+          strokeDasharray="4 24"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          className="arch-flow-animated"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.7 }}
+          transition={{ delay: 1.5 }}
+        />
+      </g>
 
       {/* Routing Agent */}
       <ArchNode x={routeCx} y={routeY} w={routeW} h={44} color="primary" label="Routing Agent" sub="LangGraph state machine" delay={0.58} />
@@ -323,6 +340,15 @@ const DiagramMultimodal = ({ dark }) => {
       {/* WORKER AGENTS group box + nodes */}
       <rect x={workerCx - 75} y={310} width={150} height={168} rx="14" fill={dark ? 'rgba(61,74,62,0.22)' : 'rgba(61,74,62,0.07)'} stroke="rgba(61,74,62,0.18)" strokeWidth="1" />
       <text x={workerCx} y={304} textAnchor="middle" fontSize="9" fill="#6A7A6B" fontFamily="Manrope" fontWeight="700" letterSpacing="0.12em">WORKER AGENTS</text>
+      
+      {/* External Sub-services for Video Agent */}
+      <ArchNode x={235} y={270} w={125} h={40} color="#7A6B8E" label="Transcription API" sub="Cloud Run service" delay={0.68} />
+      <ArchNode x={385} y={270} w={125} h={40} color="#6B8E7A" label="Vision LLM" sub="NSFW / safety check" delay={0.69} />
+      
+      {/* Connections from Video Agent to Sub-services */}
+      <ArchSegment x1={300} y1={331} x2={245} y2={290} delay={0.71} />
+      <ArchSegment x1={320} y1={331} x2={375} y2={290} delay={0.71} />
+
       <ArchNode x={workerCx} y={350} w={workerW} h={38} color="#8B6F5E" label="🎥 Video Agent" delay={0.7} />
       <ArchNode x={workerCx} y={400} w={workerW} h={38} color="#6B8E6B" label="🖼️ Image Agent" delay={0.72} />
       <ArchNode x={workerCx} y={450} w={workerW} h={38} color="#7A7A8E" label="📄 Text Agent" delay={0.74} />
@@ -352,7 +378,7 @@ const DiagramMultimodal = ({ dark }) => {
       <text x={810} y={381} textAnchor="start" fontSize="8" fill={dark ? '#9AAA9B' : '#6A7A6B'} fontFamily="Manrope,sans-serif">Audit trail · appeals · exports</text>
 
       {/* "What students ship" context box */}
-      <rect x={750} y={410} width={260} height={180} rx="16" fill={dark ? 'rgba(210,141,119,0.06)' : 'rgba(210,141,119,0.1)'} stroke="rgba(210,141,119,0.25)" strokeWidth="1" />
+      <rect x={750} y={410} width={270} height={180} rx="16" fill={dark ? 'rgba(210,141,119,0.06)' : 'rgba(210,141,119,0.1)'} stroke="rgba(210,141,119,0.25)" strokeWidth="1" />
       <text x={870} y={434} textAnchor="middle" fontSize="9" fill="#D28D77" fontFamily="Manrope,sans-serif" fontWeight="700" letterSpacing="0.14em" style={{ textTransform: 'uppercase' }}>What students ship</text>
       <text x={765} y={456} fontSize="8.5" fill={dark ? '#C8D0C8' : '#3D4A3E'} fontFamily="Manrope,sans-serif">
         Teams pick community projects (Y1–Y4), interview locals,
@@ -369,6 +395,49 @@ const DiagramMultimodal = ({ dark }) => {
       <text x={765} y={550} fontSize="8" fill="#6A7A6B" fontFamily="Manrope,sans-serif" fontStyle="italic">
         Shiksha — government schools · teacher-led · real-world learning
       </text>
+
+      {/* ═══ MAPPING: Logic to Infrastructure ═══ */}
+      {/* 1. Ingestion drops to RabbitMQ down the interstitial gap at x=615 */}
+      <path d="M 615 110 L 615 580 C 615 630, 240 610, 240 648" fill="none" stroke="#6B8E7A" strokeWidth="1.5" strokeDasharray="4 4" markerEnd="url(#archArrowEndMultimodal)" opacity="0.75" />
+      <text x={605} y={300} textAnchor="end" fontSize="8" fill="#6B8E7A" fontFamily="Manrope,sans-serif" fontWeight="600" opacity="0.9">Buffers webhooks into →</text>
+
+      {/* 2. Worker Agents drop to Cloud Run */}
+      <path d="M 310 478 L 310 520 C 310 610, 510 580, 510 648" fill="none" stroke="#6B8E7A" strokeWidth="1.5" strokeDasharray="4 4" markerEnd="url(#archArrowEndMultimodal)" opacity="0.75" />
+      <text x={315} y={535} textAnchor="start" fontSize="8" fill="#6B8E7A" fontFamily="Manrope,sans-serif" fontWeight="600" opacity="0.9">Deploys compute onto →</text>
+
+      {/* 3. Validation Store drops to DB Poolers */}
+      <path d="M 530 510 L 530 550 C 530 610, 780 580, 780 648" fill="none" stroke="#6B8E7A" strokeWidth="1.5" strokeDasharray="4 4" markerEnd="url(#archArrowEndMultimodal)" opacity="0.75" />
+      <text x={535} y={560} textAnchor="start" fontSize="8" fill="#6B8E7A" fontFamily="Manrope,sans-serif" fontWeight="600" opacity="0.9">Connects through →</text>
+
+      {/* ═══ ROW 4: Backend Infrastructure ═══ */}
+      <rect x={80} y={595} width={860} height={165} rx="14" fill={dark ? 'rgba(210,141,119,0.03)' : 'rgba(210,141,119,0.08)'} stroke="var(--primary)" strokeDasharray="6 4" strokeWidth="1" opacity="0.4" />
+      <text x={510} y={620} textAnchor="middle" fontSize="9" fill="var(--primary)" fontFamily="Manrope,sans-serif" fontWeight="700" letterSpacing="0.22em" style={{ textTransform: 'uppercase' }}>
+        Distributed Backend Infrastructure (Scaling to 100k+ Concurrent)
+      </text>
+
+      {/* RabbitMQ */}
+      <ArchNode x={240} y={670} w={150} h={44} color="#D28D77" label="RabbitMQ Broker" sub="Message Queues & Fanout" delay={1.1} />
+      
+      {/* Cloud Run */}
+      <ArchNode x={510} y={670} w={200} h={44} color="secondary" label="Cloud Run Services & Jobs" sub="Auto-scaling elastic compute" delay={1.2} />
+
+      <ArchArrowHRight x1={315} y1={670} x2={410} delay={1.3} />
+
+      {/* DB Scale */}
+      <ArchNode x={780} y={670} w={150} h={44} color="primary" label="Database Poolers" sub="Connection Multiplexing" delay={1.4} />
+
+      <ArchArrowHRight x1={610} y1={670} x2={705} delay={1.5} />
+      
+      {/* Scale Annotations */}
+      <text x={240} y={715} textAnchor="middle" fontSize="8.5" fill={dark ? '#9AAA9B' : '#6A7A6B'} fontFamily="Manrope,sans-serif">Absorbs massive bursts of 100k+</text>
+      <text x={240} y={729} textAnchor="middle" fontSize="8.5" fill={dark ? '#9AAA9B' : '#6A7A6B'} fontFamily="Manrope,sans-serif">webhooks to prevent data loss.</text>
+
+      <text x={510} y={715} textAnchor="middle" fontSize="8.5" fill={dark ? '#9AAA9B' : '#6A7A6B'} fontFamily="Manrope,sans-serif">Worker agents & LangGraph state machines spin</text>
+      <text x={510} y={729} textAnchor="middle" fontSize="8.5" fill={dark ? '#9AAA9B' : '#6A7A6B'} fontFamily="Manrope,sans-serif">from 0 to N container instances on demand.</text>
+
+      <text x={780} y={715} textAnchor="middle" fontSize="8.5" fill={dark ? '#9AAA9B' : '#6A7A6B'} fontFamily="Manrope,sans-serif">Maintains low connection counts to</text>
+      <text x={780} y={729} textAnchor="middle" fontSize="8.5" fill={dark ? '#9AAA9B' : '#6A7A6B'} fontFamily="Manrope,sans-serif">safeguard downstream storage tiers.</text>
+
     </svg>
   )
 }
@@ -1490,7 +1559,7 @@ const Footer = () => (
       <h2 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: 'var(--on-surface)', marginBottom: '1rem', lineHeight: 1.2 }}>
         Let's build something <span style={{ color: 'var(--primary)' }}>extraordinary.</span>
       </h2>
-      <p style={{ color: 'var(--on-surface-variant)', marginBottom: '2rem', fontSize: '0.95rem' }}>someetsahoo654@gmail.com · +91 9853951961</p>
+      {/* <p style={{ color: 'var(--on-surface-variant)', marginBottom: '2rem', fontSize: '0.95rem' }}></p> */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
         <a href="https://cal.com/someet" target="_blank" rel="noreferrer" style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
@@ -1559,56 +1628,56 @@ export default function App() {
   const match = hash.match(/^#\/diagram\/(.+)$/)
   if (match) {
     const diagId = match[1]
-    const panel = archPanels.find(p => p.id === diagId) 
+    const panel = archPanels.find(p => p.id === diagId)
     const isScribe = diagId === 'scribe'
     const DiagramRef = panel ? panel.diagram : (isScribe ? DiagramScribeDraggable : null)
 
     if (DiagramRef) {
       return (
-          <div style={{ padding: '2rem 1rem', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-            <Particles 
-              id="tsparticles" 
-              init={particlesInit} 
-              options={{
-                background: { color: { value: 'transparent' } },
-                particles: {
-                  number: { value: 70 },
-                  color: { value: '#D28D77' },
-                  opacity: { value: 0.2, animation: { enable: true, speed: 0.5, minimumValue: 0.1 } },
-                  size: { value: 2 },
-                  links: { enable: true, color: '#D28D77', opacity: 0.1, distance: 150 },
-                  move: { enable: true, speed: 0.6, direction: "top" }
-                }
+        <div style={{ padding: '2rem 1rem', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+          <Particles
+            id="tsparticles"
+            init={particlesInit}
+            options={{
+              background: { color: { value: 'transparent' } },
+              particles: {
+                number: { value: 70 },
+                color: { value: '#D28D77' },
+                opacity: { value: 0.2, animation: { enable: true, speed: 0.5, minimumValue: 0.1 } },
+                size: { value: 2 },
+                links: { enable: true, color: '#D28D77', opacity: 0.1, distance: 150 },
+                move: { enable: true, speed: 0.6, direction: "top" }
+              }
+            }}
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}
+          />
+          <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', zIndex: 10 }}>
+            <a href="#" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary)', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>← Back to Portfolio</a>
+            <button
+              onClick={() => setDark(v => !v)}
+              title="Toggle Theme"
+              style={{
+                background: 'var(--surface-container-low)', color: 'var(--on-surface)', border: '1px solid var(--border)',
+                width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s ease',
+                boxShadow: 'var(--shadow-sm)'
               }}
-              style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}
-            />
-            <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', zIndex: 10 }}>
-              <a href="#" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary)', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>← Back to Portfolio</a>
-              <button 
-                onClick={() => setDark(v => !v)} 
-                title="Toggle Theme"
-                style={{
-                  background: 'var(--surface-container-low)', color: 'var(--on-surface)', border: '1px solid var(--border)',
-                  width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s ease',
-                  boxShadow: 'var(--shadow-sm)'
-                }}
-                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
-                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-              >
-                {dark ? <SunIcon /> : <MoonIcon />}
-              </button>
-            </div>
-            <div style={{ width: '100%', maxWidth: '1200px', overflowX: 'auto', paddingBottom: '2rem' }}>
-              <div style={{ 
-                background: dark ? 'rgba(0,0,0,0.2)' : 'rgba(242,240,233,0.7)', 
-                padding: '2rem 1rem', borderRadius: '1rem', border: '1px solid var(--border)',
-                boxShadow: 'var(--shadow-lg)'
-              }}>
-                 <DiagramRef dark={dark} />
-              </div>
+              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              {dark ? <SunIcon /> : <MoonIcon />}
+            </button>
+          </div>
+          <div style={{ width: '100%', maxWidth: '1200px', overflowX: 'auto', paddingBottom: '2rem' }}>
+            <div style={{
+              background: dark ? 'rgba(0,0,0,0.2)' : 'rgba(242,240,233,0.7)',
+              padding: '2rem 1rem', borderRadius: '1rem', border: '1px solid var(--border)',
+              boxShadow: 'var(--shadow-lg)'
+            }}>
+              <DiagramRef dark={dark} />
             </div>
           </div>
+        </div>
       )
     }
   }
